@@ -1,8 +1,9 @@
 import vosk, queue, json
 import sounddevice as sd
+import time
 import doa
 
-#keyword = "робот"
+keyword_vars = ['привет робот', 'привет', 'робот']
 auto_define_dev_id = 1
 
 q = queue.Queue()
@@ -25,7 +26,7 @@ else:
 samplerate = int(sd.query_devices(dev_id, 'input')['default_samplerate'])
 
 try:
-    model = vosk.Model(lang="ru")
+    model = vosk.Model("path/to/vosk-model-ru")
     device = doa.find_respeaker()
     with sd.RawInputStream(samplerate=samplerate, blocksize=8000, device=dev_id, dtype='int16', \
                             channels=1, callback=(lambda i, f, t, s: q.put(bytes(i)))):
@@ -35,11 +36,11 @@ try:
             data = q.get()
             if rec.AcceptWaveform(data):
                 voice = json.loads(rec.Result())["text"]
-                #if rec.AcceptWaveform(data):
                 if len(voice) != 0:
-                #if keyword in voice:
-                    result = doa.get_doa(device)
-                    print(f"Recognized \"{voice}\" from {result}")
+                    if any(keyword in voice for keyword in keyword_vars):
+                        time.sleep(1)
+                        result = doa.get_doa(device)
+                        print(f"Recognized \"{voice}\" from {result}")
                 
 except KeyboardInterrupt:
     print('\nDone')
