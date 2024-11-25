@@ -42,6 +42,7 @@ else:
 
 samplerate = int(sd.query_devices(dev_id, 'input')['default_samplerate'])
 
+
 ## Main code
 try:
     #model = vosk.Model("path/to/vosk-model-ru")

@@ -13,7 +13,6 @@ def get_doa(device):
 def calc_doa(doa_results: list):
     return round(sum(doa_results) / len(doa_results))
 
-
 if __name__ == "__main__":
     dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
     if dev:
