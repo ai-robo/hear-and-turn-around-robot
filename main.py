@@ -19,11 +19,15 @@ def move_servo_to():
         time.sleep(delay)
     dir = doa.calc_doa(results)
     print(f"Servo will moved to {dir}; directions recorded: {results}")
-    #port.write(bytes(str(dir),  'utf-8'))
+    port.write(bytes(str(dir),  'utf-8'))
 
 q = queue.Queue()
 devices = sd.query_devices()
-#port = serial.Serial(port='COM4',  baudrate=115200, timeout=.1)
+port = serial.Serial(port='/dev/ttyACM0',  baudrate=115200, timeout=.1)
+
+#while 1:
+#    text = input()
+#    port.write(bytes(str(text), 'utf-8'))
 
 ## Define device id
 if auto_define_dev_id:
