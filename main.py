@@ -6,9 +6,10 @@ import doa
 import serial
 
 keyword_vars = ['привет робот', 'привет', 'робот', 'тест']
-auto_define_dev_id = 1
+auto_define_dev_id = True
 records_count = 4
 delay = 0.4 # Delay between records
+serial_port = '/dev/ttyACM0'
 
 def move_servo_to():
     results = []; i = 0
@@ -18,12 +19,17 @@ def move_servo_to():
         if len(voice) == 0 or i >= records_count: break
         time.sleep(delay)
     dir = doa.calc_doa(results)
-    print(f"Servo will moved to {dir}; directions recorded: {results}")
-    port.write(bytes(str(dir),  'utf-8'))
+
+    print(f"Heard speech from {dir}; directions recorded: {results}")
+    new_dir = 180 - dir
+    print(f"Shifted servo by {new_dir}")
+    ## Send angle to shift to arduino
+    port.write(bytes(str(new_dir),  'utf-8'))
+
 
 q = queue.Queue()
 devices = sd.query_devices()
-port = serial.Serial(port='/dev/ttyACM0',  baudrate=115200, timeout=.1)
+port = serial.Serial(port=serial_port,  baudrate=115200, timeout=.1)
 
 #while 1:
 #    text = input()
@@ -49,8 +55,8 @@ samplerate = int(sd.query_devices(dev_id, 'input')['default_samplerate'])
 
 ## Main code
 try:
-    #model = vosk.Model("path/to/vosk-model-ru")
-    model = vosk.Model(lang="ru")
+    model = vosk.Model("path/to/vosk-model-ru")
+    #model = vosk.Model(lang="ru")
     device = doa.find_respeaker()
     with sd.RawInputStream(samplerate=samplerate, blocksize=8000, device=dev_id, dtype='int16', \
                             channels=1, callback=(lambda i, f, t, s: q.put(bytes(i)))):
