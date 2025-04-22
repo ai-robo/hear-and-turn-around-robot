@@ -10,13 +10,14 @@ import pyaudio
 from speechkit import Session, SpeechSynthesis
 from langchain_gigachat.chat_models import GigaChat
 from langchain_core.messages import HumanMessage
+from sys import argv
 
 gigachat_creds = os.environ.get("GIGACHAT_CREDS")
 oauth_token = os.environ.get("OAUTH_TOKEN")
 catalog_id = os.environ.get("CATALOG_ID")
 
 
-keyword_vars = ['привет робот', 'привет', 'робот', 'тест']
+keyword_vars = ['привет робот', 'привет', 'робот']
 keyword_vars2 = ['опиши, что ты видишь', 'что ты видишь', 'видишь', 'опиши']
 
 auto_define_dev_id = True
@@ -126,6 +127,20 @@ try:
                             channels=1, callback=(lambda i, f, t, s: q.put(bytes(i)))):
         rec = vosk.KaldiRecognizer(model, samplerate)
         print("Ready. I'm listening...")
+        if argv[-1] == "-al": # Audioless mode takes photo, sends to Gigachat and shutting Done
+            image = capture()
+            cv2.imwrite('/tmp/image.jpg', image)
+            file = llm.upload_file(open("/tmp/image.jpg", "rb"))
+            response = llm.invoke([
+                    HumanMessage(
+                        content="Что ты видишь? Начинай свой ответ так: Я вижу... Не используй в своем ответе такие слова как снимок, фотография, изображение и подобные! Это не фотография! Ты описываешь то, что ты реально видишь!",
+                        additional_kwargs={"attachments": [file.id_]}
+                    )
+            ]).content
+            print(response)
+            q.queue.clear()
+            exit(0)
+
 
         while True:
             data = q.get()
